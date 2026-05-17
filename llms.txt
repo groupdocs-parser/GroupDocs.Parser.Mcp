@@ -1,0 +1,43 @@
+# GroupDocs.Parser MCP Server
+
+MCP server for GroupDocs.Parser — extract text, images, metadata, tables, and barcodes from documents via AI agents. Wraps GroupDocs.Parser for .NET and exposes it as tool calls for Claude, Cursor, VS Code / GitHub Copilot, and other MCP-compatible clients. Supports PDF, DOCX, XLSX, PPTX, HTML, EPUB, MSG, EML, JPG, PNG, TIFF, and 50+ more document and image formats. Exposes ExtractText, ExtractImages, ExtractMetadata, ExtractTables, ExtractBarcodes, and GetDocumentInfo tools.
+
+## Install
+
+- With dnx (.NET 10 SDK, no install step): `dnx GroupDocs.Parser.Mcp@26.5.0 --yes`
+- As a global dotnet tool: `dotnet tool install -g GroupDocs.Parser.Mcp` then run `groupdocs-parser-mcp`
+- As a Docker container: `docker run --rm -i -v $(pwd)/documents:/data ghcr.io/groupdocs-parser/parser-net-mcp:latest`
+
+## MCP tools
+
+- ExtractText — extract plain text from a document (whole or per page). Truncates large outputs.
+- ExtractImages — save embedded images to storage as `<basename>_image<N>.<ext>` files; returns a saved-path list.
+- ExtractMetadata — author / title / dates / EXIF / XMP / IPTC / custom properties as JSON.
+- ExtractTables — tables as Markdown (default — renders in chat) or structured JSON (`format='json'`).
+- ExtractBarcodes — decoded values + types + page + confidence + angle for each barcode / QR code found.
+- GetDocumentInfo — file type + page count + size as JSON, without modifying the file.
+
+## Supported formats
+
+PDF, DOCX, XLSX, PPTX, ODT, RTF, HTML, EPUB, MSG, EML, JPG, PNG, TIFF, BMP, GIF, MP3, MP4, and 50+ other document, image, and media formats.
+
+## Environment variables
+
+- GROUPDOCS_MCP_STORAGE_PATH — base folder for input + output (defaults to current working directory)
+- GROUPDOCS_MCP_OUTPUT_PATH — optional, routes output files (used by ExtractImages) to a separate folder
+- GROUPDOCS_LICENSE_PATH — path to GroupDocs.Total.lic; omit for evaluation mode (text outputs may be watermarked and other outputs size-limited)
+
+## Key links
+
+- NuGet: https://www.nuget.org/packages/GroupDocs.Parser.Mcp
+- Repository: https://github.com/groupdocs-parser/GroupDocs.Parser.Mcp
+- Docker: ghcr.io/groupdocs-parser/parser-net-mcp and docker.io/groupdocs/parser-net-mcp
+- License: MIT
+
+## Example prompts for AI agents
+
+- "How many pages does invoice.pdf have, and what format is it?"
+- "Extract the text from page 2 of contract.docx."
+- "What's the author and creation date of report.xlsx?"
+- "Pull the line items table out of invoice.pdf as Markdown."
+- "Are there any QR codes in shipping-label.png? If so, what do they decode to?"
