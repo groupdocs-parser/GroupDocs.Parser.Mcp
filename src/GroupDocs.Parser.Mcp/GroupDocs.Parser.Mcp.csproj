@@ -86,9 +86,11 @@
     <PackageReference Include="ModelContextProtocol" Version="$(ModelContextProtocol)" />
   </ItemGroup>
 
-  <ItemGroup>
-    <!-- GroupDocs.Parser 26.4.0's nuspec declares SkiaSharp + SkiaSharp.NativeAssets.Linux.NoDependencies at 3.119.1. Pin explicitly so transitive resolution stays deterministic across upstream bumps and so the native Linux .so is always present. -->
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="$(SkiaSharp)" />
-  </ItemGroup>
+  <!-- NOTE (26.6.1 TFM split): the manual SkiaSharp.NativeAssets.Linux.NoDependencies ref
+       was removed. The GroupDocs.Parser.NetStandard21 runtime sub-package (resolved under
+       net10.0) declares SkiaSharp + SkiaSharp.NativeAssets.Linux.NoDependencies (3.119.1)
+       transitively, so libSkiaSharp.so ships without our help. It also pulls Aspose.Drawing
+       and Microsoft.ML.OnnxRuntime — the StripMobileAndExoticRuntimes target above trims the
+       mobile/exotic native assets those bring so the nupkg stays under NuGet's 250 MB limit. -->
 
 </Project>
