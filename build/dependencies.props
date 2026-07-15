@@ -24,17 +24,20 @@
   </PropertyGroup>
 
   <PropertyGroup Label="Package Versions">
-    <GroupDocsParserMcp>26.5.0</GroupDocsParserMcp>
+    <GroupDocsParserMcp>26.7.0</GroupDocsParserMcp>
   </PropertyGroup>
 
   <PropertyGroup Label="External Dependency Versions">
     <GroupDocsMcpCore>26.4.1</GroupDocsMcpCore>
-    <GroupDocsParser>26.4.0</GroupDocsParser>
+    <!-- 26.6.1 is TFM-split (net462 / netstandard2.1). Under net10.0 NuGet resolves the
+         GroupDocs.Parser.NetStandard21 runtime sub-package, which declares SkiaSharp +
+         SkiaSharp.NativeAssets.Linux.NoDependencies (3.119.1), Aspose.Drawing, and
+         Microsoft.ML.OnnxRuntime transitively — so native libSkiaSharp ships without our
+         help and the old manual NativeAssets.Linux ref was removed. See assets/backlog-and-issues.md. -->
+    <GroupDocsParser>26.6.1</GroupDocsParser>
     <MicrosoftExtensionsHosting>10.0.5</MicrosoftExtensionsHosting>
     <ModelContextProtocol>1.1.0</ModelContextProtocol>
     <MicrosoftSourceLinkGithub>8.0.0</MicrosoftSourceLinkGithub>
-    <!-- Must match the SkiaSharp version $(GroupDocsParser) transitively pulls. Re-verify after every GroupDocsParser bump (ABI-incompatible otherwise). GroupDocs.Parser 26.4.0's nuspec declares SkiaSharp [3.119.1, ). -->
-    <SkiaSharp>3.119.1</SkiaSharp>
   </PropertyGroup>
 
   <PropertyGroup Label="NuGet Common Settings">
