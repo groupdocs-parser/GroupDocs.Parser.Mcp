@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.Text;
 using GroupDocs.Mcp.Core;
 using GroupDocs.Mcp.Core.Licensing;
 using GroupDocs.Parser.Options;
@@ -52,19 +51,7 @@ public static class ExtractTextTool
         }
         catch (Exception ex)
         {
-            return FormatException(ex, resolved.FileName, page);
+            return ToolError.Format("Text extraction", resolved.FileName, ex, page.HasValue ? $" (page={page})" : null);
         }
-    }
-
-    private static string FormatException(Exception ex, string fileName, int? page)
-    {
-        var sb = new StringBuilder();
-        sb.Append($"Text extraction failed for '{fileName}'");
-        if (page.HasValue) sb.Append($" (page={page})");
-        sb.Append($": {ex.GetType().FullName}: {ex.Message}");
-        var inner = ex.InnerException;
-        for (int depth = 0; inner != null && depth < 5; depth++, inner = inner.InnerException)
-            sb.Append($" | inner({depth}): {inner.GetType().FullName}: {inner.Message}");
-        return sb.ToString();
     }
 }
