@@ -23,11 +23,12 @@ RUN apt-get update \
 # --build-arg VERSION=YY.MM.N. Default 'dev' makes local `docker build` runs
 # self-identify instead of inheriting the base image's misleading version.
 ARG VERSION=dev
-LABEL org.opencontainers.image.title="GroupDocs.Parser.Mcp" \
+LABEL io.modelcontextprotocol.server.name="io.github.groupdocs-parser/groupdocs-parser-mcp" \
+      org.opencontainers.image.title="GroupDocs.Parser.Mcp" \
       org.opencontainers.image.description="MCP server exposing GroupDocs.Parser for .NET as AI-callable tools (ExtractText, ExtractImages, ExtractMetadata, ExtractTables, ExtractBarcodes, GetDocumentInfo) for Claude, Cursor, GitHub Copilot, and other MCP agents." \
       org.opencontainers.image.version="${VERSION}" \
       org.opencontainers.image.source="https://github.com/groupdocs-parser/GroupDocs.Parser.Mcp" \
-      org.opencontainers.image.url="https://www.nuget.org/packages/GroupDocs.Parser.Mcp" \
+      org.opencontainers.image.url="https://github.com/groupdocs-parser/GroupDocs.Parser.Mcp/pkgs/container/parser-net-mcp" \
       org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.vendor="Aspose Pty Ltd"
 
