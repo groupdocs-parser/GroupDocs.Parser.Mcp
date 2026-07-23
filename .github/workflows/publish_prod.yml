@@ -115,6 +115,30 @@ jobs:
           BUILD_TYPE: PROD
         run: .\build.ps1
 
+      # ───────────────────────────────────────────────────────────────────────────
+      # DOCKER-FIRST WORKAROUND — REVERT TO NUGET WHEN THE ENGINE FITS UNDER 250 MB
+      #
+      # GroupDocs.Parser's managed DLL embeds ~234 MB of ONNX models, so the packed
+      # nupkg (~320 MB) exceeds NuGet.org's 250 MB hard limit. Until upstream ships a
+      # model-externalized / "lite" engine that packs under 250 MB, this product is
+      # released via Docker/GHCR + the MCP Registry (OCI) instead of NuGet.
+      #
+      # TO REVERT to the standard NuGet flow (identical to the other GroupDocs MCP products):
+      #   1. Remove this size-check step, the `oversize` job output (top of publish_prod),
+      #      and every `if: steps.size.outputs.oversize != 'true'` guard on the CodeSign +
+      #      NuGet-push steps below.
+      #   2. In the `publish_mcp_registry` job, drop the oversize/GHCR branch of the
+      #      "Wait for the release artifact" step — keep only the NuGet-index wait.
+      #   3. src/GroupDocs.Parser.Mcp/.mcp/server.json → packages[0]: change back to
+      #        "registryType": "nuget",
+      #        "registryBaseUrl": "https://api.nuget.org/v3/index.json",
+      #        "identifier": "GroupDocs.Parser.Mcp"
+      #      (JSON can't carry comments, so this note is the source of truth for that file.)
+      #   4. docker/Dockerfile: the io.modelcontextprotocol.server.name LABEL may stay
+      #      (harmless) or be removed.
+      #   5. Re-enable the NuGet/dnx integration suite in GroupDocs.Parser.Mcp.Tests
+      #      (see its .github/workflows/integration.yml — currently skipped).
+      # ───────────────────────────────────────────────────────────────────────────
       - name: Check nupkg size vs NuGet limit
         id: size
         shell: pwsh

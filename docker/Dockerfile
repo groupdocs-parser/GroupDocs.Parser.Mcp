@@ -23,6 +23,9 @@ RUN apt-get update \
 # --build-arg VERSION=YY.MM.N. Default 'dev' makes local `docker build` runs
 # self-identify instead of inheriting the base image's misleading version.
 ARG VERSION=dev
+# DOCKER-FIRST: the io.modelcontextprotocol.server.name label lets the MCP Registry
+# verify ownership of this GHCR image, which is how Parser is published while its nupkg
+# is too big for NuGet (>250 MB). Revert plan: .github/workflows/publish_prod.yml.
 LABEL io.modelcontextprotocol.server.name="io.github.groupdocs-parser/groupdocs-parser-mcp" \
       org.opencontainers.image.title="GroupDocs.Parser.Mcp" \
       org.opencontainers.image.description="MCP server exposing GroupDocs.Parser for .NET as AI-callable tools (ExtractText, ExtractImages, ExtractMetadata, ExtractTables, ExtractBarcodes, GetDocumentInfo) for Claude, Cursor, GitHub Copilot, and other MCP agents." \
