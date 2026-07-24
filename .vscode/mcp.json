@@ -9,6 +9,10 @@
     }
   ],
   "servers": {
+    "groupdocs-parser": {
+      "command": "docker",
+      "args": ["run", "--rm", "-i", "-v", "${input:storage_path}:/data", "ghcr.io/groupdocs-parser/parser-net-mcp:latest"]
+    },
     "groupdocs-parser-dev": {
       "type": "stdio",
       "command": "dotnet",

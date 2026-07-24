@@ -4,8 +4,8 @@ MCP server for GroupDocs.Parser — extract text, images, metadata, tables, and 
 
 ## Install
 
-- With dnx (.NET 10 SDK, no install step): `dnx GroupDocs.Parser.Mcp@26.5.0 --yes`
-- As a global dotnet tool: `dotnet tool install -g GroupDocs.Parser.Mcp` then run `groupdocs-parser-mcp`
+Docker-first product - the packed tool exceeds NuGet.org's 250 MB limit, so there is no dnx / NuGet path. Multi-arch image (amd64 + arm64) on GHCR only; pin by replacing :latest with a version tag.
+
 - As a Docker container: `docker run --rm -i -v $(pwd)/documents:/data ghcr.io/groupdocs-parser/parser-net-mcp:latest`
 
 ## MCP tools
@@ -27,9 +27,13 @@ PDF, DOCX, XLSX, PPTX, ODT, RTF, HTML, EPUB, MSG, EML, JPG, PNG, TIFF, BMP, GIF,
 - GROUPDOCS_MCP_OUTPUT_PATH — optional, routes output files (used by ExtractImages) to a separate folder
 - GROUPDOCS_LICENSE_PATH — path to GroupDocs.Total.lic; omit for evaluation mode (text outputs may be watermarked and other outputs size-limited)
 
+## Licensing
+
+The MCP server is MIT; the underlying GroupDocs engines require a license for production use. Evaluation mode (no license): Text output may include an evaluation watermark, and other outputs may be size-limited. Mount GroupDocs.Total.lic into the container and set GROUPDOCS_LICENSE_PATH. Free 30-day temporary license: https://purchase.groupdocs.com/temporary-license/ - purchase: https://purchase.groupdocs.com/pricing/parser/net
+
 ## Key links
 
-- NuGet: https://www.nuget.org/packages/GroupDocs.Parser.Mcp
+- GHCR package: https://github.com/orgs/groupdocs-parser/packages/container/package/parser-net-mcp
 - Repository: https://github.com/groupdocs-parser/GroupDocs.Parser.Mcp
 - Docker: ghcr.io/groupdocs-parser/parser-net-mcp and docker.io/groupdocs/parser-net-mcp
 - License: MIT

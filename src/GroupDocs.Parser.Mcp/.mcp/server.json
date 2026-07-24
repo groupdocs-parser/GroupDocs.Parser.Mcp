@@ -2,11 +2,11 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
   "description": "MCP server for GroupDocs.Parser — extract text, images, metadata, tables, barcodes via AI.",
   "name": "io.github.groupdocs-parser/groupdocs-parser-mcp",
-  "version": "26.7.1",
+  "version": "26.7.2",
   "packages": [
     {
       "registryType": "oci",
-      "identifier": "ghcr.io/groupdocs-parser/parser-net-mcp:26.7.1",
+      "identifier": "ghcr.io/groupdocs-parser/parser-net-mcp:26.7.2",
       "transport": {
         "type": "stdio"
       },

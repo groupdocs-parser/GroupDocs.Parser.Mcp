@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "groupdocs-parser": {
+      "command": "docker",
+      "args": ["run", "--rm", "-i", "-v", "/path/to/documents:/data", "ghcr.io/groupdocs-parser/parser-net-mcp:latest"]
+    }
+  }
+}
