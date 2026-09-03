@@ -24,11 +24,11 @@
   </PropertyGroup>
 
   <PropertyGroup Label="Package Versions">
-    <GroupDocsParserMcp>26.7.3</GroupDocsParserMcp>
+    <GroupDocsParserMcp>26.9.0</GroupDocsParserMcp>
   </PropertyGroup>
 
   <PropertyGroup Label="External Dependency Versions">
-    <GroupDocsMcpCore>26.4.1</GroupDocsMcpCore>
+    <GroupDocsMcpCore>26.9.0</GroupDocsMcpCore>
     <!-- 26.6.1 is TFM-split (net462 / netstandard2.1). Under net10.0 NuGet resolves the
          GroupDocs.Parser.NetStandard21 runtime sub-package, which declares SkiaSharp +
          SkiaSharp.NativeAssets.Linux.NoDependencies (3.119.1), Aspose.Drawing, and
