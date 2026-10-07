@@ -24,17 +24,17 @@
   </PropertyGroup>
 
   <PropertyGroup Label="Package Versions">
-    <GroupDocsParserMcp>26.9.0</GroupDocsParserMcp>
+    <GroupDocsParserMcp>26.10.0</GroupDocsParserMcp>
   </PropertyGroup>
 
   <PropertyGroup Label="External Dependency Versions">
     <GroupDocsMcpCore>26.9.0</GroupDocsMcpCore>
-    <!-- 26.6.1 is TFM-split (net462 / netstandard2.1). Under net10.0 NuGet resolves the
-         GroupDocs.Parser.NetStandard21 runtime sub-package, which declares SkiaSharp +
-         SkiaSharp.NativeAssets.Linux.NoDependencies (3.119.1), Aspose.Drawing, and
-         Microsoft.ML.OnnxRuntime transitively — so native libSkiaSharp ships without our
-         help and the old manual NativeAssets.Linux ref was removed. See assets/backlog-and-issues.md. -->
-    <GroupDocsParser>26.6.1</GroupDocsParser>
+    <!-- TFM-split. Under net10.0, 26.8.0 resolves the GroupDocs.Parser.Net100 runtime
+         sub-package (26.6.1 resolved GroupDocs.Parser.NetStandard21). It still brings
+         SkiaSharp + NativeAssets for Linux/Win32/macOS and Microsoft.ML.OnnxRuntime
+         transitively, so native libSkiaSharp ships without our help and the old manual
+         NativeAssets.Linux ref stays removed. See docs/backlog-and-issues.md. -->
+    <GroupDocsParser>26.8.0</GroupDocsParser>
     <MicrosoftExtensionsHosting>10.0.5</MicrosoftExtensionsHosting>
     <ModelContextProtocol>1.1.0</ModelContextProtocol>
     <MicrosoftSourceLinkGithub>8.0.0</MicrosoftSourceLinkGithub>

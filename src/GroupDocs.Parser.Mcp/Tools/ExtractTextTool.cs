@@ -42,6 +42,17 @@ public static class ExtractTextTool
 
             var text = textReader.ReadToEnd();
 
+            // A document with no text layer reads as an empty string rather than a null reader.
+            // Unlicensed that still returned the evaluation banner, so the caller saw something;
+            // licensed (or metered) the response was completely empty - the agent got a blank
+            // answer with no explanation. Say what happened instead.
+            if (string.IsNullOrWhiteSpace(text))
+                return $"No text found in '{resolved.FileName}'"
+                     + (page.HasValue ? $" on page {page}" : string.Empty)
+                     + ". The document has no text layer - typically a scan or an image-only page - "
+                     + "and this server has no OCR step. Check the page count with get_document_info, "
+                     + "or try extract_barcodes for codes printed on the page.";
+
             var prefix = licenseManager.IsLicensed
                 ? string.Empty
                 : "[Evaluation mode] Output may be limited and include watermarks.\n\n";

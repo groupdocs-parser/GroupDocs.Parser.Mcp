@@ -1,6 +1,6 @@
 # GroupDocs.Parser MCP Server
 
-MCP server for GroupDocs.Parser — extract text, images, metadata, tables, and barcodes from documents via AI agents. Wraps GroupDocs.Parser for .NET and exposes it as tool calls for Claude, Cursor, VS Code / GitHub Copilot, and other MCP-compatible clients. Supports PDF, DOCX, XLSX, PPTX, HTML, EPUB, MSG, EML, JPG, PNG, TIFF, and 50+ more document and image formats. Exposes ExtractText, ExtractImages, ExtractMetadata, ExtractTables, ExtractBarcodes, and GetDocumentInfo tools.
+MCP server for GroupDocs.Parser — extract text, images, metadata, tables, and barcodes from documents via AI agents. Wraps GroupDocs.Parser for .NET and exposes it as tool calls for Claude, Cursor, VS Code / GitHub Copilot, and other MCP-compatible clients. Supports PDF, DOCX, XLSX, PPTX, HTML, EPUB, MSG, EML, JPG, PNG, TIFF, and 50+ more document and image formats. Exposes extract_text, extract_images, extract_metadata, extract_tables, extract_barcodes, get_document_info, and get_license_status tools.
 
 ## Install
 
@@ -10,12 +10,13 @@ Docker-first product - the packed tool exceeds NuGet.org's 250 MB limit, so ther
 
 ## MCP tools
 
-- ExtractText — extract plain text from a document (whole or per page). Truncates large outputs.
-- ExtractImages — save embedded images to storage as `<basename>_image<N>.<ext>` files; returns a saved-path list.
-- ExtractMetadata — author / title / dates / EXIF / XMP / IPTC / custom properties as JSON.
-- ExtractTables — tables as Markdown (default — renders in chat) or structured JSON (`format='json'`).
-- ExtractBarcodes — decoded values + types + page + confidence + angle for each barcode / QR code found.
-- GetDocumentInfo — file type + page count + size as JSON, without modifying the file.
+- extract_text — extract plain text from a document (whole or per page). Truncates large outputs.
+- extract_images — save embedded images to storage as `<basename>_image<N>.<ext>` files; returns a saved-path list.
+- extract_metadata — author / title / dates / EXIF / XMP / IPTC / custom properties as JSON.
+- extract_tables — tables as Markdown (default — renders in chat) or structured JSON (`format='json'`).
+- extract_barcodes — decoded values + types + page + confidence + angle for each barcode / QR code found.
+- get_document_info — file type + page count + size as JSON, without modifying the file.
+- get_license_status — active licensing mode (evaluation / licensed / metered), engine version, and metered consumption. Takes no arguments and processes no document.
 
 ## Supported formats
 
@@ -24,12 +25,14 @@ PDF, DOCX, XLSX, PPTX, ODT, RTF, HTML, EPUB, MSG, EML, JPG, PNG, TIFF, BMP, GIF,
 ## Environment variables
 
 - GROUPDOCS_MCP_STORAGE_PATH — base folder for input + output (defaults to current working directory)
-- GROUPDOCS_MCP_OUTPUT_PATH — optional, routes output files (used by ExtractImages) to a separate folder
-- GROUPDOCS_LICENSE_PATH — path to GroupDocs.Total.lic; omit for evaluation mode (text outputs may be watermarked and other outputs size-limited)
+- GROUPDOCS_MCP_OUTPUT_PATH — optional, routes output files (used by extract_images) to a separate folder
+- GROUPDOCS_LICENSE_PATH — path to a GroupDocs license file inside the container (GroupDocs.Parser.lic or GroupDocs.Total.lic); omit for evaluation mode; ignored when metered keys are set
+- GROUPDOCS_METERED_PUBLIC_KEY — metered (pay-per-use) public key; needs the private key too and takes precedence over GROUPDOCS_LICENSE_PATH
+- GROUPDOCS_METERED_PRIVATE_KEY — metered private key; secret, pass from the environment rather than a committed config
 
 ## Licensing
 
-The MCP server is MIT; the underlying GroupDocs engines require a license for production use. Evaluation mode (no license): Text output may include an evaluation watermark, and other outputs may be size-limited. Mount GroupDocs.Total.lic into the container and set GROUPDOCS_LICENSE_PATH. Free 30-day temporary license: https://purchase.groupdocs.com/temporary-license/ - purchase: https://purchase.groupdocs.com/pricing/parser/net
+The MCP server is MIT; the underlying GroupDocs.Parser engine requires a license for production use. Evaluation mode (no license) truncates extraction silently: only the first 1,600 characters and 20 lines of text per file, only the first 5 pages/sheets/slides, 20 spreadsheet rows, 5 metadata properties per file, 100 files per session, plus evaluation marks — see https://docs.groupdocs.com/parser/net/evaluation-limitations-and-licensing/. Two ways to license: a license file (mount it into the container and set GROUPDOCS_LICENSE_PATH) or metered pay-per-use (set GROUPDOCS_METERED_PUBLIC_KEY and GROUPDOCS_METERED_PRIVATE_KEY; metered wins over a license file and needs outbound connectivity because usage is reported to GroupDocs servers). Call get_license_status to see the active mode and metered consumption. Free 30-day temporary license: https://purchase.groupdocs.com/temporary-license/ - purchase: https://purchase.groupdocs.com/pricing/parser/net
 
 ## Key links
 

@@ -45,14 +45,25 @@ jobs:
         run: |
           [xml]$deps = Get-Content build/dependencies.props
           $expected = $deps.SelectSingleNode('//GroupDocsParserMcp').InnerText.Trim()
-          $serverJson = Get-Content src/GroupDocs.Parser.Mcp/.mcp/server.json -Raw
-          $pattern = '"version"\s*:\s*"' + [regex]::Escape($expected) + '"'
-          $count = [regex]::Matches($serverJson, $pattern).Count
-          if ($count -ne 2) {
-            Write-Error "server.json version drift: expected both version fields = '$expected' (found $count of 2)."
+          $server = Get-Content src/GroupDocs.Parser.Mcp/.mcp/server.json -Raw | ConvertFrom-Json
+          # Where the package version lives depends on the package type: a NuGet package
+          # carries a "version" field, an OCI package carries it in the image tag and has no
+          # "version" field at all. Counting "version" fields fails every docker-first release.
+          $problems = @()
+          if ($server.version -ne $expected) { $problems += "top-level version is '$($server.version)'" }
+          foreach ($pkg in @($server.packages)) {
+            if ($pkg.registryType -eq 'oci') {
+              if (-not "$($pkg.identifier)".EndsWith(":$expected")) { $problems += "OCI image tag is '$($pkg.identifier)'" }
+            } elseif ($pkg.version -ne $expected) {
+              $problems += "$($pkg.registryType) package version is '$($pkg.version)'"
+            }
+          }
+          if (@($server.packages).Count -eq 0) { $problems += 'no packages declared' }
+          if ($problems.Count -gt 0) {
+            Write-Error "server.json version drift vs dependencies.props '$expected': $($problems -join '; ')."
             exit 1
           }
-          Write-Host "server.json version '$expected' matches dependencies.props"
+          Write-Host "server.json version '$expected' matches dependencies.props (top-level + $(@($server.packages).Count) package(s))"
 
   test:
     name: Test on .NET ${{ matrix.dotnet-version }}

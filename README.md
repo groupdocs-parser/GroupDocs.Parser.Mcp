@@ -35,19 +35,20 @@ docker run --rm -i \
 ```
 
 Images are multi-arch (`linux/amd64` + `linux/arm64`), tagged `latest` plus an
-immutable version tag per release (e.g. `:26.9.0`). To pin, replace `:latest`
+immutable version tag per release (e.g. `:26.10.0`). To pin, replace `:latest`
 with the version tag - recommended for shared configs and CI.
 
 ## Available MCP Tools
 
 | Tool | Description |
 |---|---|
-| `ExtractText` | Extracts plain text from a document (whole document or a single page). Truncates very large outputs. |
-| `ExtractImages` | Extracts all embedded images and saves them to storage as `<basename>_image<N>.<ext>` files |
-| `ExtractMetadata` | Extracts metadata (author, title, dates, custom properties, EXIF, XMP, IPTC) and returns it as JSON |
-| `ExtractTables` | Extracts tables from a document as Markdown (default — renders in chat) or structured JSON |
-| `ExtractBarcodes` | Detects all barcodes / QR codes and returns their decoded values, types, and positions as JSON |
-| `GetDocumentInfo` | Returns the file type, page count, and size of a document as JSON (without modifying it) |
+| `extract_text` | Extracts plain text from a document (whole document or a single page). Truncates very large outputs. |
+| `extract_images` | Extracts all embedded images and saves them to storage as `<basename>_image<N>.<ext>` files |
+| `extract_metadata` | Extracts metadata (author, title, dates, custom properties, EXIF, XMP, IPTC) and returns it as JSON |
+| `extract_tables` | Extracts tables from a document as Markdown (default — renders in chat) or structured JSON |
+| `extract_barcodes` | Detects all barcodes / QR codes and returns their decoded values, types, and positions as JSON |
+| `get_document_info` | Returns the file type, page count, and size of a document as JSON (without modifying it) |
+| `get_license_status` | Reports the active licensing mode (evaluation / licensed / metered), the engine version, and — under metered — the consumed quantity and credit. Processes no document. |
 
 All tools support PDF, DOCX, XLSX, PPTX, HTML, EPUB, MSG, EML, JPG, PNG, TIFF, and 50+ more document and image formats.
 
@@ -64,13 +65,58 @@ server is connected.
 
 ## Licensing
 
-**The MCP server itself is MIT; the underlying GroupDocs engines require a license
-for production use.** Without one the server runs in **evaluation mode**:
+**The MCP server itself is MIT; the underlying GroupDocs.Parser engine requires a license
+for production use.** Without one the server runs in **evaluation mode**, and the limits bite
+hard for extraction — the output looks valid and is silently incomplete:
 
-- Text output may include an evaluation watermark, and other outputs may be size-limited.
+- **Text extraction: only the first 1,600 characters and 20 lines per file**, and only the first
+  5 pages, sheets or slides. Formatted-text and structure extraction add a 20-row cap for
+  spreadsheets.
+- **Metadata extraction: only 5 properties per file.**
+- Only 100 files per session, and outputs carry evaluation marks.
+- Full list: [evaluation limitations](https://docs.groupdocs.com/parser/net/evaluation-limitations-and-licensing/).
 
-To lift the limits, mount your `GroupDocs.Total.lic` into the container and point
-`GROUPDOCS_LICENSE_PATH` at it (see the Claude Desktop example above):
+There are two ways to license the server.
+
+**License file** — mount your `GroupDocs.Parser.lic` (or `GroupDocs.Total.lic`) into the container
+and point `GROUPDOCS_LICENSE_PATH` at it, as in the Claude Desktop example above. Works offline.
+
+**Metered (pay-per-use)** — set both `GROUPDOCS_METERED_PUBLIC_KEY` and
+`GROUPDOCS_METERED_PRIVATE_KEY`. You are billed for what you actually process, which suits AI
+agents well because their usage is bursty and hard to predict up front. If both a metered key pair
+and a license file are configured, **metered wins** and the file is ignored.
+
+> **Metered mode needs outbound connectivity.** Usage is reported to GroupDocs servers, so
+> air-gapped or firewalled deployments must allow that egress — or use a license file instead.
+
+Call the **`get_license_status`** tool at any time to see which mode is active, and — under
+metered — the consumed quantity and remaining credit. It processes no document and changes
+nothing, so it is the cheapest way to confirm a setup before a real run.
+
+### Keeping the private key out of your config
+
+The metered private key is a secret. MCP client configs are plain files on disk, and a
+project-scoped `.mcp.json` is committed by convention, so prefer, in order:
+
+1. **Set the variables in your OS environment and leave them out of the config entirely.** An
+   stdio MCP server inherits its client's environment, so this works in every client.
+   On macOS note that an app launched from Finder does not inherit shell exports — use
+   `launchctl setenv`, or launch the client from a terminal.
+2. **Reference them indirectly** if your client supports it (Claude Code expands `${VAR}`;
+   VS Code uses `${env:VAR}` and `${input:...}`).
+3. **A literal value in a user-scoped config** (for example `~/.claude.json`) is acceptable for a
+   single developer.
+4. **Never** commit a literal key in a project-scoped `.mcp.json`.
+
+For Docker, forward the values without writing them into any file — the names alone, so the keys
+never appear in the command line:
+
+```bash
+docker run --rm -i \
+  -e GROUPDOCS_METERED_PUBLIC_KEY -e GROUPDOCS_METERED_PRIVATE_KEY \
+  -v /path/to/documents:/data \
+  ghcr.io/groupdocs-parser/parser-net-mcp:latest
+```
 
 - [Get a free 30-day temporary license](https://purchase.groupdocs.com/temporary-license/)
 - [Purchase a license](https://purchase.groupdocs.com/pricing/parser/net) | [Product page](https://products.groupdocs.com/parser/net/)
@@ -80,8 +126,10 @@ To lift the limits, mount your `GroupDocs.Total.lic` into the container and poin
 | Variable | Description | Default |
 |---|---|---|
 | `GROUPDOCS_MCP_STORAGE_PATH` | Base folder for input and output files | current directory |
-| `GROUPDOCS_MCP_OUTPUT_PATH` | *(Optional)* separate folder for output files (used by `ExtractImages`) | `GROUPDOCS_MCP_STORAGE_PATH` |
-| `GROUPDOCS_LICENSE_PATH` | Path to GroupDocs license file. In evaluation mode, text outputs may include a watermark and other outputs may be size-limited | (evaluation mode) |
+| `GROUPDOCS_MCP_OUTPUT_PATH` | *(Optional)* separate folder for output files (used by `extract_images`) | `GROUPDOCS_MCP_STORAGE_PATH` |
+| `GROUPDOCS_LICENSE_PATH` | Path to a GroupDocs license file, as seen inside the container. Ignored when metered keys are set | (evaluation mode) |
+| `GROUPDOCS_METERED_PUBLIC_KEY` | Metered (pay-per-use) public key. Needs the private key too; takes precedence over `GROUPDOCS_LICENSE_PATH` | (unset) |
+| `GROUPDOCS_METERED_PRIVATE_KEY` | Metered private key. **Secret** — pass it from the environment, never from a committed config | (unset) |
 
 ## Usage with Claude Desktop
 
