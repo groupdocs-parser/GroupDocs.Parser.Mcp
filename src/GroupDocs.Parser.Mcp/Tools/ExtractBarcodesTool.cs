@@ -58,7 +58,9 @@ public static class ExtractBarcodesTool
                 angle      = b.Angle
             });
 
-            var prefix = licenseManager.IsLicensed ? string.Empty : "[Evaluation mode] Output may be limited.\n\n";
+            // No square brackets in the note: callers locate the JSON array by its first '[', so a
+            // "[Evaluation mode]" prefix made every unlicensed response unparseable.
+            var prefix = licenseManager.IsLicensed ? string.Empty : "Evaluation mode: output may be limited.\n\n";
             return $"{prefix}Found {list.Count} barcode(s) in '{resolved.FileName}':\n\n" +
                    JsonSerializer.Serialize(result, JsonOptions);
         }

@@ -317,8 +317,32 @@ jobs:
     permissions:
       id-token: write     # for GitHub OIDC authentication
       contents: read
+      actions: write      # to start publish_docker.yml on a manual release (see below)
     steps:
       - uses: actions/checkout@v4
+
+      - name: Start the Docker build (manual releases)
+        # A tag created by this workflow's own token (the release job above) never triggers other
+        # workflows, so a release started from the Actions tab never ran publish_docker.yml and this
+        # job timed out waiting for the image. workflow_dispatch is the one event GITHUB_TOKEN may
+        # trigger, so start the build here - on the release tag, so it builds exactly that commit.
+        # A tag push needs nothing: it triggers publish_docker.yml directly.
+        if: github.event_name == 'workflow_dispatch' && needs.publish_prod.outputs.oversize == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(jq -r '.version' src/GroupDocs.Parser.Mcp/.mcp/server.json)
+          IMAGE="groupdocs-parser/parser-net-mcp"
+          TOKEN=$(curl -fsSL "https://ghcr.io/token?scope=repository:$IMAGE:pull" | jq -r .token)
+          CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" \
+                   -H "Accept: application/vnd.oci.image.index.v1+json" \
+                   "https://ghcr.io/v2/$IMAGE/manifests/$VERSION")
+          if [ "$CODE" = "200" ]; then echo "ghcr.io/$IMAGE:$VERSION already exists - not rebuilding."; exit 0; fi
+          ACTIVE=$(gh run list -R "$GITHUB_REPOSITORY" --workflow publish_docker.yml --json status \
+                     --jq '[.[] | select(.status != "completed")] | length')
+          if [ "$ACTIVE" != "0" ]; then echo "A Publish Docker Image run is already in progress - waiting for it."; exit 0; fi
+          gh workflow run publish_docker.yml -R "$GITHUB_REPOSITORY" --ref "$VERSION" -f version="$VERSION"
+          echo "Started Publish Docker Image for $VERSION on tag $VERSION."
 
       - name: Download mcp-publisher
         run: |
@@ -341,7 +365,7 @@ jobs:
           if [ "$OVERSIZE" = "true" ]; then
             IMAGE="groupdocs-parser/parser-net-mcp"
             echo "Oversize release — waiting for GHCR image ghcr.io/$IMAGE:$VERSION (pushed by publish_docker.yml)..."
-            for attempt in $(seq 1 20); do
+            for attempt in $(seq 1 30); do
               TOKEN=$(curl -fsSL "https://ghcr.io/token?scope=repository:$IMAGE:pull" | jq -r .token)
               CODE=$(curl -s -o /dev/null -w "%{http_code}" \
                        -H "Authorization: Bearer $TOKEN" \
@@ -350,10 +374,10 @@ jobs:
                        -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
                        "https://ghcr.io/v2/$IMAGE/manifests/$VERSION")
               if [ "$CODE" = "200" ]; then echo "GHCR image present after ~$((attempt * 30))s."; exit 0; fi
-              echo "Attempt $attempt/20: image not on GHCR yet (HTTP $CODE), sleeping 30s..."
+              echo "Attempt $attempt/30: image not on GHCR yet (HTTP $CODE), sleeping 30s..."
               sleep 30
             done
-            echo "::error::GHCR image ghcr.io/$IMAGE:$VERSION not available within ~10 min. Ensure the Publish Docker Image workflow succeeded for this tag, then re-run this job."
+            echo "::error::GHCR image ghcr.io/$IMAGE:$VERSION not available within ~15 min. Check the Publish Docker Image run for this tag (a private GHCR package also returns 401/403 here), then re-run this job."
             exit 1
           else
             echo "Waiting for NuGet.org V3 index to list GroupDocs.Parser.Mcp $VERSION..."

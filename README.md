@@ -35,8 +35,26 @@ docker run --rm -i \
 ```
 
 Images are multi-arch (`linux/amd64` + `linux/arm64`), tagged `latest` plus an
-immutable version tag per release (e.g. `:26.10.0`). To pin, replace `:latest`
+immutable version tag per release (e.g. `:26.10.2`). To pin, replace `:latest`
 with the version tag - recommended for shared configs and CI.
+
+### Linux: run the container as your user
+
+The image runs as a non-root user (uid 1654). On Linux a mounted folder keeps its host owner, so a
+folder you own is **read-only** inside the container and `extract_images` cannot save its files — the
+error ends with *"Fix: the server cannot write to the output folder"*. Add `--user` so the container
+writes as you:
+
+```bash
+docker run --rm -i --user "$(id -u):$(id -g)" \
+  -v $(pwd)/documents:/data \
+  ghcr.io/groupdocs-parser/parser-net-mcp:latest
+```
+
+MCP client configs (JSON) do not run a shell, so put the numbers in directly — `id -u` and `id -g`
+print them, typically `1000`: `"args": ["run", "--rm", "-i", "--user", "1000:1000", "-v", …]`.
+Read-only tools (`extract_text`, `extract_tables`, `extract_metadata`, `extract_barcodes`,
+`get_document_info`) work without it. Docker Desktop on Windows and macOS does not need this.
 
 ## Available MCP Tools
 

@@ -73,6 +73,12 @@ None specific to the wrapper.
 
 ## Testing & CI
 
+- [x] P1 Docker job failed on Linux with `Permission denied` writing `/data/images_image1.jpeg` — the image
+      runs as uid 1654 and a bind mount keeps its host owner. Fixed in 26.10.2: the Tests fixture runs
+      `--user`, the server's error names the fix, and the README documents it.
+- [x] P1 Unlicensed `extract_barcodes` / `extract_tables` JSON did not parse: the `[Evaluation mode]` prefix's
+      bracket was taken as the start of the JSON array. Fixed in 26.10.2 (note reads `Evaluation mode:`).
+
 - [ ] **The companion test repo currently validates nothing.** Its harness launches
       `dnx GroupDocs.Parser.Mcp@<ver>` from nuget.org — a package that was **never published**
       (Docker-first). Every test dies at fixture init with a dnx 404, and the suite still reports

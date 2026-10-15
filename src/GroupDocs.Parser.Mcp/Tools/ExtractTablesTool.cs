@@ -54,7 +54,9 @@ public static class ExtractTablesTool
                     : $"No tables found in '{resolved.FileName}'.";
 
             var useJson = format.Equals("json", StringComparison.OrdinalIgnoreCase);
-            var prefix = licenseManager.IsLicensed ? string.Empty : "[Evaluation mode] Output may be limited.\n\n";
+            // No square brackets in the note: JSON callers locate the array by its first '[', so a
+            // "[Evaluation mode]" prefix made every unlicensed JSON response unparseable.
+            var prefix = licenseManager.IsLicensed ? string.Empty : "Evaluation mode: output may be limited.\n\n";
 
             if (useJson)
             {
